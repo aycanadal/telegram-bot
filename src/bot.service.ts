@@ -74,7 +74,7 @@ export class BotService implements OnModuleInit {
                                 [
                                     {
                                         text: "Open webapp",
-                                        web_app: { url: "https://svelte-kit-telegram-webapp.vercel.app/?firstName=" + msg.from.first_name },
+                                        web_app: { url: "https://svelte-kit-telegram-webapp.fly.dev?firstName=" + msg.from.first_name },
                                     },
                                 ]
                             ]
