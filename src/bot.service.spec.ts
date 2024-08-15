@@ -35,6 +35,10 @@ describe('BotService', () => {
 
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+}); 
+
   describe('on /adminhello', () => {
     it('should forward message if admin', async () => {
 
@@ -42,24 +46,13 @@ describe('BotService', () => {
       await botService.startPolling();
 
       const innerOnText = onText.mock.calls[0][1]
-
-      let sendMessageArgs = { receiverId: null, forwardedMessage: null }
-
-      const dummyService = {
-        innerOnText: innerOnText,
-        bot: {
-          sendMessage: (receiverIdInner, forwardedMessageInner) => {
-            sendMessageArgs.receiverId = receiverIdInner;
-            sendMessageArgs.forwardedMessage = forwardedMessageInner
-          }
-        }
-      }
+      const sendMessage = jest.spyOn(botService.bot, 'sendMessage').mockImplementation();
 
       let receiverId = 111222333,
         helloFromAdmin = "hello from admin",
         userInput = `/adminhello ${receiverId} ${helloFromAdmin}`;
 
-      await dummyService.innerOnText(
+      await innerOnText(
         {
           text: userInput,
           message_id: 1,
@@ -69,8 +62,13 @@ describe('BotService', () => {
         },
         /\/adninhello /.exec(userInput))
 
-      expect(sendMessageArgs.receiverId).toBe(receiverId)
-      expect(sendMessageArgs.forwardedMessage).toBe(helloFromAdmin)
+        const sendMessageCalledWith={
+          receiver: sendMessage.mock.calls[0][0],
+          message: sendMessage.mock.calls[0][1]
+        }
+
+      expect(sendMessageCalledWith.receiver).toBe(receiverId)
+      expect(sendMessageCalledWith.message).toBe(helloFromAdmin)
 
     });
 
@@ -88,19 +86,9 @@ describe('BotService', () => {
         helloFromAdmin = "hello from admin",
         userInput = `/adminhello ${receiverId} ${helloFromAdmin}`;
 
-      const sendMessageArgs = { receiverId: null, forwardedMessage: null }
+        const sendMessage = jest.spyOn(botService.bot, 'sendMessage').mockImplementation();
 
-      const dummyService = {
-        innerOnText: innerOnText,
-        bot: {
-          sendMessage: (receiverIdInner, forwardedMessageInner) => {
-            sendMessageArgs.receiverId = receiverIdInner;
-            sendMessageArgs.forwardedMessage = forwardedMessageInner
-          }
-        }
-      }
-
-      await dummyService.innerOnText(
+      await innerOnText(
         {
           text: userInput,
           message_id: 1,
@@ -110,8 +98,13 @@ describe('BotService', () => {
         },
         /\/adninhello /.exec(userInput))
 
-      expect(sendMessageArgs.receiverId).toBe(senderId)
-      expect(sendMessageArgs.forwardedMessage).toBe(errorMessage)
+        const sendMessageCalledWith={
+          receiver: sendMessage.mock.calls[0][0],
+          message: sendMessage.mock.calls[0][1]
+        }
+
+      expect(sendMessageCalledWith.receiver).toBe(senderId)
+      expect(sendMessageCalledWith.message).toBe(errorMessage)
 
     });
 

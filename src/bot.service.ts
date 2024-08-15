@@ -35,13 +35,14 @@ export class BotService implements OnModuleInit {
     async startPolling() {
 
         const userRepository = this.userRepository
+        const bot = this.bot;
 
-        this.bot.onText(/\/adminhello /, async function onText(message) {
+        bot.onText(/\/adminhello /, async function onText(message) {
 
             let user = await userRepository.findOneBy({ telegramId: message.from.id })
 
             if (!user || !user.isAdmin) {
-                this.bot.sendMessage(message.from.id, "Only an admin can use this command.")
+                bot.sendMessage(message.from.id, "Only an admin can use this command.")
                 return;
             }
 
@@ -52,7 +53,7 @@ export class BotService implements OnModuleInit {
             const forwardedMessage = words.join(" ");
 
             if (receiverId)
-                await this.bot.sendMessage(receiverId, forwardedMessage);
+                await bot.sendMessage(receiverId, forwardedMessage);
 
         });
 
@@ -72,7 +73,6 @@ export class BotService implements OnModuleInit {
                     user = await this.userRepository.save(user)
                 }
 
-                console.log("calling sendMessage.")
                 await this.bot.sendMessage(
                     msg.from.id,
                     "Hello " + msg.from.first_name + ", what would you like to do?",
