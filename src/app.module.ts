@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { BotService } from './bot.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user';
-import { SignupController } from './signup.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
@@ -21,7 +20,7 @@ import { ConfigModule } from '@nestjs/config';
       isGlobal: true,
     })
   ],
-  controllers: [AppController, SignupController],
+  controllers: [AppController],
   providers: [BotService],
 })
 export class AppModule {}

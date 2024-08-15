@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 describe('AppController', () => {
   let app: TestingModule;
@@ -8,14 +7,25 @@ describe('AppController', () => {
   beforeAll(async () => {
     app = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
+  describe('getStatus', () => {
+    it('should return server status message', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+
+      const statusResponseMock = {
+        send: jest.fn((x) => x),
+      }
+      
+      const responseMock = {
+        status: jest.fn((x) => statusResponseMock),
+        send: jest.fn((x) => x),
+      } as unknown as Response
+
+      appController.getStatus(responseMock)
+
+      expect(statusResponseMock.send).toHaveBeenCalledWith('Bot server is up.');
     });
   });
 });

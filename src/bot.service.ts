@@ -2,11 +2,14 @@ import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./user";
+import TelegramBot from "node-telegram-bot-api";
 
 @Injectable()
 export class BotService implements OnModuleInit {
 
     botToken = process.env.BOT_TOKEN;
+    bot: TelegramBot;
+    webappUrl="https://svelte-kit-telegram-webapp.fly.dev?firstName="
 
     constructor(
         @InjectRepository(User)
@@ -14,42 +17,46 @@ export class BotService implements OnModuleInit {
     ) { }
 
 
-    onModuleInit() {
-        this.initialize();
+    async onModuleInit() {
+        await this.createAdmin();
+        this.createBot();
+        await this.startPolling();
     }
 
-
-    async initialize() {
-
-        await this.createAdmin();
+    createBot(polling = true) {
 
         process.env.NTBA_FIX_319 = "1";
         const TelegramBot = require('node-telegram-bot-api');
-        const bot = new TelegramBot(this.botToken, { polling: true });
+        this.bot = new TelegramBot(this.botToken, { polling });
+
+    }
+
+
+    async startPolling() {
 
         const userRepository = this.userRepository
 
-        bot.onText("/adminhello ", async function onText(message) {
+        this.bot.onText(/\/adminhello /, async function onText(message) {
 
             let user = await userRepository.findOneBy({ telegramId: message.from.id })
 
             if (!user || !user.isAdmin) {
-                bot.sendMessage(message.from.id, "Only an admin can use this command.")
+                this.bot.sendMessage(message.from.id, "Only an admin can use this command.")
                 return;
             }
 
             const messageText = message.text.toString().trim();
             let words = messageText.split(" ");
-            const receiverId = words[1];
+            const receiverId = +words[1];
             words.splice(0, 2);
             const forwardedMessage = words.join(" ");
 
             if (receiverId)
-                bot.sendMessage(receiverId, forwardedMessage);
+                await this.bot.sendMessage(receiverId, forwardedMessage);
 
         });
 
-        bot.on('message', async (msg) => {
+        this.bot.on('message', async (msg) => {
             let command = "/start";
             if (msg.text.toString().toLowerCase().indexOf(command) === 0) {
 
@@ -65,7 +72,8 @@ export class BotService implements OnModuleInit {
                     user = await this.userRepository.save(user)
                 }
 
-                bot.sendMessage(
+                console.log("calling sendMessage.")
+                await this.bot.sendMessage(
                     msg.from.id,
                     "Hello " + msg.from.first_name + ", what would you like to do?",
                     {
@@ -74,13 +82,13 @@ export class BotService implements OnModuleInit {
                                 [
                                     {
                                         text: "Open webapp",
-                                        web_app: { url: "https://svelte-kit-telegram-webapp.fly.dev?firstName=" + msg.from.first_name },
+                                        web_app: { url: this.webappUrl + msg.from.first_name },
                                     },
                                 ]
                             ]
                         }
                     }
-                );
+                ); 
             }
         })
     }
@@ -88,7 +96,7 @@ export class BotService implements OnModuleInit {
     async createAdmin() {
 
         let user = this.userRepository.create({
-            telegramId: "426419992",
+            telegramId: 426419992,
             firstName: "Aycan",
             username: "ayci",
             createdAt: new Date(),

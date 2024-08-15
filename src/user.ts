@@ -7,7 +7,7 @@ export class User {
     id: number;
 
     @Column({ unique: true })
-    telegramId: string;
+    telegramId: number;
 
     @Column({ nullable: true })
     firstName: string;

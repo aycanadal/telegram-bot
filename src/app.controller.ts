@@ -6,7 +6,7 @@ export class AppController {
   constructor() {}
 
   @Get()
-  getBot(@Res() res) {
+  getStatus(@Res() res) {
     res.status(HttpStatus.OK).send("Bot server is up.");
   }
   
